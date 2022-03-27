@@ -34,7 +34,7 @@ from notebook._tz import utcnow
 from notebook.i18n import combine_translations
 from notebook.utils import is_hidden, url_path_join, url_is_absolute, url_escape, urldecode_unix_socket_path
 from notebook.services.security import csp_report_uri
-
+from ..session.session import Session
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
@@ -55,6 +55,10 @@ def log():
 
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
+    # TODO 什么是钩子函数
+    def initialize(self) -> None:
+        self.session = Session(self)
+
 
     @property
     def content_security_policy(self):

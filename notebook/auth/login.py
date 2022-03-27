@@ -16,6 +16,7 @@ from .security import passwd_check, set_password
 
 from ..base.handlers import IPythonHandler
 
+from ..custom.sys import UserUtils
 
 class LoginHandler(IPythonHandler):
     """The basic tornado login handler
@@ -23,7 +24,7 @@ class LoginHandler(IPythonHandler):
     authenticates with a hashed password from the configuration.
     """
     def _render(self, message=None):
-        self.write(self.render_template('login.html',
+        self.write(self.render_template('login1.html',
                 next=url_escape(self.get_argument('next', default=self.base_url)),
                 message=message,
         ))
@@ -59,12 +60,14 @@ class LoginHandler(IPythonHandler):
                 self.log.warning("Not allowing login redirect to %r" % url)
                 url = default
         self.redirect(url)
-
+    # TODO 源码分析-登录-01
     def get(self):
+
         if self.current_user:
             next_url = self.get_argument('next', default=self.base_url)
             self._redirect_safe(next_url)
         else:
+            # 未登录则跳转到 login.html
             self._render()
 
     @property
@@ -73,29 +76,43 @@ class LoginHandler(IPythonHandler):
 
     def passwd_check(self, a, b):
         return passwd_check(a, b)
-    
+
+    # TODO 源码分析-登录-02
     def post(self):
-        typed_password = self.get_argument('password', default=u'')
-        new_password = self.get_argument('new_password', default=u'')
 
+        username = self.get_argument("username", default=u'')
+        password = self.get_argument("password", default=u'')
+        is_login,cur_user = UserUtils.checkUsernameAndPassword(username,password)
+        if is_login:
+            self.set_login_cookie(self,username)
+        else:
+            self.set_status(401)
+            self._render(message={'error': 'Invalid credentials'})
+            return
 
-        
-        if self.get_login_available(self.settings):
-            if self.passwd_check(self.hashed_password, typed_password) and not new_password:
-                self.set_login_cookie(self, uuid.uuid4().hex)
-            elif self.token and self.token == typed_password:
-                self.set_login_cookie(self, uuid.uuid4().hex)
-                if new_password and self.settings.get('allow_password_change'):
-                    config_dir = self.settings.get('config_dir')
-                    config_file = os.path.join(config_dir, 'jupyter_notebook_config.json')
-                    set_password(new_password, config_file=config_file)
-                    self.log.info("Wrote hashed password to %s" % config_file)
-            else:
-                self.set_status(401)
-                self._render(message={'error': 'Invalid credentials'})
-                return
+        # typed_password = self.get_argument('password', default=u'')
+        # new_password = self.get_argument('new_password', default=u'')
 
+        # if self.get_login_available(self.settings):
+        #     if self.passwd_check(self.hashed_password, typed_password) and not new_password:
+        #         self.set_login_cookie(self, uuid.uuid4().hex)
+        #     elif self.token and self.token == typed_password:  # TODO 源码分析-登录-03 使用token ，判断是否登录
+        #         # 若登录成功，写入到cookie中  uuid.uuid4().hex
+        #         # uuid.uuid4().hex
+        #         user_id = uuid.uuid4().hex
+        #         # self.set_login_cookie(self, uuid.uuid4().hex)
+        #         user_id2 = self.set_login_cookie(self,user_id)
+        #         if new_password and self.settings.get('allow_password_change'):
+        #             config_dir = self.settings.get('config_dir')
+        #             config_file = os.path.join(config_dir, 'jupyter_notebook_config.json')
+        #             set_password(new_password, config_file=config_file)
+        #             self.log.info("Wrote hashed password to %s" % config_file)
+        #     else:
+        #         self.set_status(401)
+        #         self._render(message={'error': 'Invalid credentials'})
+        #         return
 
+        # 若验证成功则跳转代码
         next_url = self.get_argument('next', default=self.base_url)
         self._redirect_safe(next_url)
 
