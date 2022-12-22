@@ -11,6 +11,10 @@ class LogoutHandler(IPythonHandler):
 
     def get(self):
         self.clear_login_cookie()
+        # self.clear_cookie()
+        cookie_options = self.settings.get('cookie_options', {})
+        path = cookie_options.setdefault('path', self.base_url)
+        self.clear_cookie("__sson__",path)
         if self.login_available:
             message = {'info': 'Successfully logged out.'}
         else:

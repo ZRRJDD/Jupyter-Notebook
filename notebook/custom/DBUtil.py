@@ -25,7 +25,7 @@ class DBFactory(object):
         self.engine = create_engine(
             "mysql+pymysql://root:root@localhost:3306/jupyter",
             encoding="utf-8",
-            echo=True
+            # echo=True # 关闭SQL代码输出
         )
 
     def get_session(self):

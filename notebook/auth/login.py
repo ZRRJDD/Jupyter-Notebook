@@ -59,12 +59,23 @@ class LoginHandler(IPythonHandler):
                 # not allowed, use default
                 self.log.warning("Not allowing login redirect to %r" % url)
                 url = default
+        print("url: ",url)
         self.redirect(url)
+
+    # 重写 父类的 get_current_user方法
+    def get_current_user(self):
+        return self.session['user']
+        # if 'user' in self.session:
+        #     return self.session['user']
+        # return None
+
     # TODO 源码分析-登录-01
     def get(self):
-
         if self.current_user:
-            next_url = self.get_argument('next', default=self.base_url)
+            login_name = self.session['user'].login_name
+            self.log.info(login_name)
+            next_url = self.get_argument('next', default=self.base_url+"/"+login_name)
+            self.log.info('next_url:' + next_url)
             self._redirect_safe(next_url)
         else:
             # 未登录则跳转到 login.html
@@ -79,12 +90,12 @@ class LoginHandler(IPythonHandler):
 
     # TODO 源码分析-登录-02
     def post(self):
-
         username = self.get_argument("username", default=u'')
         password = self.get_argument("password", default=u'')
         is_login,cur_user = UserUtils.checkUsernameAndPassword(username,password)
         if is_login:
             self.set_login_cookie(self,username)
+            self.session['user'] = cur_user
         else:
             self.set_status(401)
             self._render(message={'error': 'Invalid credentials'})
@@ -113,7 +124,9 @@ class LoginHandler(IPythonHandler):
         #         return
 
         # 若验证成功则跳转代码
-        next_url = self.get_argument('next', default=self.base_url)
+        next_url = self.get_argument('next', default=self.base_url+"/"+cur_user.login_name)
+        # next_url = next_url + cur_user.login_name
+        # print('next_url',next_url)
         self._redirect_safe(next_url)
 
     @classmethod

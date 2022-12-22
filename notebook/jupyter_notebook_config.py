@@ -11,7 +11,7 @@ c.NotebookApp.tornado_settings = {
     }
 }
 # jupyter工作目录
-c.NotebookApp.notebook_dir ='/Users/zrrjdd/software/jupyter'
+c.NotebookApp.notebook_dir ='/Users/zrrjdd/software/jupyter/workplace'
 # 启动时不在浏览器打开
 c.NotebookApp.open_browser = False
 # 端口

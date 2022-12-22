@@ -10,7 +10,6 @@ import json
 import mimetypes
 import os
 import re
-import sys
 import traceback
 import types
 import warnings
@@ -19,7 +18,7 @@ from http.cookies import Morsel
 
 from urllib.parse import urlparse
 from jinja2 import TemplateNotFound
-from tornado import web, gen, escape, httputil
+from tornado import web, escape, httputil
 from tornado.log import app_log
 import prometheus_client
 
@@ -34,7 +33,7 @@ from notebook._tz import utcnow
 from notebook.i18n import combine_translations
 from notebook.utils import is_hidden, url_path_join, url_is_absolute, url_escape, urldecode_unix_socket_path
 from notebook.services.security import csp_report_uri
-from ..session.session import Session
+from notebook.custom.session.session import Session
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
